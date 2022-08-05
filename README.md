@@ -28,3 +28,7 @@ Build and Deploy:
         --function-name thumbnail-generator \
         --invocation-type Event \
         --payload file://events/s3-image-put-test-dev.json outputfile.txt
+
+## Licensing
+------
+ThumbnailGenerator is licensed under the [Apache License 2.0](https://github.com/ViaDroid/thumbnail-generator/blob/main/LICENSE).

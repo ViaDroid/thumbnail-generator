@@ -68,7 +68,8 @@ build() {
 
     ${ZIP} -r ${ZIP_FILE} . \
     -x *.sh  \
-    -x events/\*
+    -x events/\* \
+    -x thumbnail_event_sender.py
 
     CP=`(which cp)`
     ${CP} ${ZIP_FILE}  ${PROJECT_ROOT_DIR}

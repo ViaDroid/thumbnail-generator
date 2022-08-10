@@ -29,6 +29,38 @@ Build and Deploy:
         --invocation-type Event \
         --payload file://events/s3-image-put-test-dev.json outputfile.txt
 
+## Generate thumbnail for exists objects
+---
+```shell
+Usage:
+    python3 thumbnail-generator/src/thumbnail_event_sender.py -h
+
+    usage: thumbnail_event_sender.py [-h] [--version] [--bucket BUCKET] [--region REGION] [--function FUNCTION]
+
+    options:
+    -h, --help            show this help message and exit
+    --version, -v         show the version
+    --env ENV, -e ENV     environment [dev|qa|prod] for s3 bucket
+    --bucket BUCKET, -b BUCKET
+                            aws s3 bucket name
+    --region REGION, -r REGION
+                            aws region
+    --function FUNCTION, -f FUNCTION
+                            aws lambda function name
+
+Dev:
+    python3 thumbnail-generator/src/thumbnail_event_sender.py -e=dev -f=thumbnail-generator -r=us-west-2
+
+QA:
+    python3 thumbnail-generator/src/thumbnail_event_sender.py -e=qa -f=thumbnail-generator -r=us-west-2
+
+Prod:
+    python3 thumbnail-generator/src/thumbnail_event_sender.py -e=prod -f=thumbnail-generator -r=us-west-2
+
+Custom Bucket & Function:
+    python3 thumbnail-generator/src/thumbnail_event_sender.py -b=[bucket-name] -f=[function-name] -r=us-west-2
+```
+
 ## Licensing
 ------
 ThumbnailGenerator is licensed under the [Apache License 2.0](https://github.com/ViaDroid/thumbnail-generator/blob/main/LICENSE).

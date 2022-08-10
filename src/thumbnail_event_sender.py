@@ -10,18 +10,27 @@ bucket_dev = 'com.landingintl.assets-dev-us-west-2'
 bucket_qa = 'com.landingintl.assets-qa-us-west-2'
 bucket_prod = 'com.landingintl.assets-us-west-2'
 
+bucket_map = {
+    'dev':bucket_dev,
+    'qa':bucket_qa,
+    'prod':bucket_prod,
+}
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--version', '-v', action='version',
                     version='%(prog)s version : v 0.01', help='show the version')
-parser.add_argument("--bucket", '-b', default=bucket_dev, help='aws s3 bucket name, default is dev')
+group = parser.add_mutually_exclusive_group()
+group.add_argument("--env", '-e', default='dev', help='environment [dev|qa|prod] for s3 bucket')
+group.add_argument("--bucket", '-b', help='aws s3 bucket name')
+
 parser.add_argument("--region", '-r', default=default_region, help='aws region')
 parser.add_argument("--function", '-f', default=default_function, help='aws lambda function name')
 
 args = parser.parse_args()
 region = args.region
+env = args.env
 bucket = args.bucket
-bucket_arn = 'arn:aws:s3:::{}'.format(bucket)
 function = args.function
 
 s3_client = boto3.client('s3')
@@ -127,15 +136,19 @@ def send_event(payload):
 
 
 if __name__ == '__main__':
+    if bucket is None :
+        bucket = bucket_map[env]
+
     print(region, bucket, function)
 
     # session = boto3.Session(aws_access_key_id='<your_access_key_id>',
     #               aws_secret_access_key='<your_secret_access_key>')
+    
 
     # print(payload_template)
     payload_template['Records'][0]['awsRegion'] = region
     payload_template['Records'][0]['s3']['bucket']['name'] = bucket
-    payload_template['Records'][0]['s3']['bucket']['arn'] = bucket_arn
+    payload_template['Records'][0]['s3']['bucket']['arn'] = 'arn:aws:s3:::{}'.format(bucket)
 
     loop_bucket(bucket)
 

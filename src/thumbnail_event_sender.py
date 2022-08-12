@@ -26,12 +26,14 @@ group.add_argument("--bucket", '-b', help='aws s3 bucket name')
 
 parser.add_argument("--region", '-r', default=default_region, help='aws region')
 parser.add_argument("--function", '-f', default=default_function, help='aws lambda function name')
+parser.add_argument("--thread-num", '-t', default=10, type=int, help='concurrency thread num, default 10')
 
 args = parser.parse_args()
 region = args.region
 env = args.env
 bucket = args.bucket
 function = args.function
+thread_num = args.thread_num
 
 s3_client = boto3.client('s3')
 lambda_client = boto3.client('lambda', region)
@@ -98,7 +100,6 @@ def loop_bucket(bucket):
 
     print("Count: ", count)
 
-    thread_num = 1
     threads = []
     for i in range(thread_num):
         t = threading.Thread(target=worker, args=(q,))
@@ -139,7 +140,7 @@ if __name__ == '__main__':
     if bucket is None :
         bucket = bucket_map[env]
 
-    print(region, bucket, function)
+    print(region, bucket, function, thread_num)
 
     # session = boto3.Session(aws_access_key_id='<your_access_key_id>',
     #               aws_secret_access_key='<your_secret_access_key>')

@@ -47,18 +47,22 @@ Usage:
                             aws region
     --function FUNCTION, -f FUNCTION
                             aws lambda function name
+    --thread-num THREAD_NUM, -t THREAD_NUM
+                            concurrency thread num, default 10
+    --file-type FILE_TYPE, -ft FILE_TYPE
+                            file format type
 
 Dev:
-    python3 thumbnail-generator/src/thumbnail_event_sender.py -e=dev -f=thumbnail-generator -r=us-west-2
+    python3 src/thumbnail_event_sender.py -e=dev -f=thumbnail-generator -r=us-west-2
 
 QA:
-    python3 thumbnail-generator/src/thumbnail_event_sender.py -e=qa -f=thumbnail-generator -r=us-west-2
+    python3 src/thumbnail_event_sender.py -e=qa -f=thumbnail-generator -r=us-west-2
 
 Prod:
-    python3 thumbnail-generator/src/thumbnail_event_sender.py -e=prod -f=thumbnail-generator -r=us-west-2
+    python3 src/thumbnail_event_sender.py -e=prod -f=thumbnail-generator -r=us-west-2
 
 Custom Bucket & Function:
-    python3 thumbnail-generator/src/thumbnail_event_sender.py -b=[bucket-name] -f=[function-name] -r=us-west-2
+    python3 src/thumbnail_event_sender.py -b=[bucket-name] -f=[function-name] -r=us-west-2
 ```
 
 ## Licensing

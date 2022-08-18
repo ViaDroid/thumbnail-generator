@@ -3,6 +3,8 @@ import queue
 import threading
 import json
 import argparse
+import time
+import os
 
 default_region = 'us-west-2'
 default_function = 'thumbnail-generator'
@@ -27,6 +29,8 @@ group.add_argument("--bucket", '-b', help='aws s3 bucket name')
 parser.add_argument("--region", '-r', default=default_region, help='aws region')
 parser.add_argument("--function", '-f', default=default_function, help='aws lambda function name')
 parser.add_argument("--thread-num", '-t', default=10, type=int, help='concurrency thread num, default 10')
+parser.add_argument("--file-type", '-ft', help='file format type')
+# parser.add_argument("--statistics", '-s', help='Statistics by format')
 
 args = parser.parse_args()
 region = args.region
@@ -34,11 +38,14 @@ env = args.env
 bucket = args.bucket
 function = args.function
 thread_num = args.thread_num
+file_type = args.file_type
 
 s3_client = boto3.client('s3')
 lambda_client = boto3.client('lambda', region)
 
 semaphore = threading.Semaphore(value=0)
+
+statistics_map = {}
 
 payload_template = {
     "Records": [
@@ -87,19 +94,31 @@ def loop_bucket(bucket):
     # Create a PageIterator from the Paginator
     page_iterator = paginator.paginate(Bucket=bucket)
 
-    count = 0
     q = queue.Queue()
     for page in page_iterator:
         # print(page['Contents'])
         for obj in page['Contents']:
             key = obj['Key']
             size = obj['Size']
-            q.put([size, key])
 
-            count += 1
+            suffix = os.path.splitext(key)[-1][1:]
+            if suffix not in statistics_map:
+                statistics_map[suffix] = [1, size]
+            else:
+                v = statistics_map[suffix]
+                v[0] += 1
+                v[1] += size
+                statistics_map[suffix] = v
+            
+            if file_type is not None:
+                if key.endswith(file_type):
+                    q.put([size, key])
+            else:
+                q.put([size, key])
+    
+    return q
 
-    print("Count: ", count)
-
+def start(q):
     threads = []
     for i in range(thread_num):
         t = threading.Thread(target=worker, args=(q,))
@@ -136,7 +155,19 @@ def send_event(payload):
     print(r)
 
 
+def print_statistics():
+    count = size = 0
+    for k, v in statistics_map.items():
+        count += v[0]
+        size += v[1]
+        print('{}\t\t{}\t{:.2f} Mb'.format(k, v[0], v[1]/1000/1000))
+    
+    print('\nTotal:\t\t{}\t{:.2f} Mb'.format(count, size/1000/1000))
+
+
 if __name__ == '__main__':
+    start_time = time.time()
+
     if bucket is None :
         bucket = bucket_map[env]
 
@@ -151,8 +182,13 @@ if __name__ == '__main__':
     payload_template['Records'][0]['s3']['bucket']['name'] = bucket
     payload_template['Records'][0]['s3']['bucket']['arn'] = 'arn:aws:s3:::{}'.format(bucket)
 
-    loop_bucket(bucket)
+    q = loop_bucket(bucket)
+    # print("Count: ", q.qsize())
+    print_statistics()
+
+    start(q)
 
     # send_event(payload_template)
 
+    print("Duration time:", time.time() - start_time)
     
